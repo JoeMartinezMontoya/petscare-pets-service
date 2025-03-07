@@ -3,7 +3,6 @@ namespace App\Service;
 
 use App\Entity\Pet;
 use App\Repository\PetRepository;
-use Symfony\Component\HttpFoundation\Response;
 
 class PetService
 {
@@ -14,14 +13,14 @@ class PetService
         $this->petRepository = $petRepository;
     }
 
-    public function createPet(array $data): array
+    public function createPet(array $data): ?string
     {
-        $pet       = new Pet();
         $birthdate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['birthDate']);
         if (! $birthdate) {
             throw new \InvalidArgumentException('La date de naissance fournie est invalide.');
         }
-        $pet->setName($data['name'])
+        $pet = (new Pet)
+            ->setName($data['name'])
             ->setSpecies($data['species'])
             ->setRace($data['race'])
             ->setBirthDate($birthdate)
@@ -30,11 +29,6 @@ class PetService
 
         $this->petRepository->persistPet($pet);
 
-        return [
-            "title"   => "Le nouvel animal a été enregistré",
-            "status"  => Response::HTTP_OK,
-            "detail"  => "",
-            "message" => "Tudu bon",
-        ];
+        return $pet->getName() ?? null;
     }
 }
