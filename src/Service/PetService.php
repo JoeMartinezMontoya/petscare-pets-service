@@ -3,21 +3,27 @@ namespace App\Service;
 
 use App\Entity\Pet;
 use App\Repository\PetRepository;
+use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class PetService
 {
     private PetRepository $petRepository;
+    private SerializerInterface $serializer;
+    private CacheItemPoolInterface $cache;
 
-    public function __construct(PetRepository $petRepository)
+    public function __construct(PetRepository $petRepository, SerializerInterface $serializer, CacheItemPoolInterface $cache)
     {
         $this->petRepository = $petRepository;
+        $this->serializer    = $serializer;
+        $this->cache         = $cache;
     }
 
     public function createPet(array $data): ?string
     {
         $birthdate = \DateTimeImmutable::createFromFormat('Y-m-d', $data['birthDate']);
         if (! $birthdate) {
-            throw new \InvalidArgumentException('La date de naissance fournie est invalide.');
+            throw new \InvalidArgumentException('Birthdate format is not valid.');
         }
         $pet = (new Pet)
             ->setName($data['name'])
@@ -30,5 +36,27 @@ class PetService
         $this->petRepository->persistPet($pet);
 
         return $pet->getName() ?? null;
+    }
+
+    public function getLastPets(int $limit): string
+    {
+        $cacheKey  = "last_pets_$limit";
+        $cacheItem = $this->cache->getItem($cacheKey);
+
+        if (! $cacheItem->isHit()) {
+            $lastPets       = $this->petRepository->findLastPets($limit);
+            $serializedPets = $this->serializer->serialize($lastPets, 'json');
+
+            $cacheItem->set($serializedPets);
+            $cacheItem->expiresAfter(3600);
+            $this->cache->save($cacheItem);
+        }
+
+        return $cacheItem->get();
+    }
+
+    public function getUserPets(int $userId): string
+    {
+        return $this->serializer->serialize($this->petRepository->findBy(['ownerId' => $userId]), 'json') ?? '';
     }
 }
