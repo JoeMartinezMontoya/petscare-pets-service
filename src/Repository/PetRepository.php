@@ -16,9 +16,18 @@ class PetRepository extends ServiceEntityRepository
         parent::__construct($registry, Pet::class);
     }
 
-    public function persistPet(Pet $pet)
+    public function persistPet(Pet $pet): void
     {
         $this->getEntityManager()->persist($pet);
         $this->getEntityManager()->flush();
+    }
+
+    public function findLastPets(int $limit): array
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }
