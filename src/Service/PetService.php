@@ -55,8 +55,16 @@ class PetService
         return $cacheItem->get();
     }
 
-    public function getUserPets(int $userId): string
+    public function getUserPets(int $userId): mixed
     {
-        return $this->serializer->serialize($this->petRepository->findBy(['ownerId' => $userId]), 'json') ?? '';
+        $cacheKey  = "user_pets_$userId";
+        $cacheItem = $this->cache->getItem($cacheKey);
+        if (! $cacheItem->isHit()) {
+            $userPets = $this->serializer->serialize($this->petRepository->findBy(['ownerId' => $userId]), 'json');
+            $cacheItem->set($userPets);
+            $cacheItem->expiresAfter(86400);
+            $this->cache->save($cacheItem);
+        }
+        return $cacheItem->get();
     }
 }
