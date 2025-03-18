@@ -25,6 +25,7 @@ class PetService
         if (! $birthdate) {
             throw new \InvalidArgumentException('Birthdate format is not valid.');
         }
+
         $pet = (new Pet)
             ->setName($data['name'])
             ->setSpecies($data['species'])
@@ -34,6 +35,10 @@ class PetService
             ->setOwnerId($data['user_id'] ?? null);
 
         $this->petRepository->persistPet($pet);
+
+        if ($pet->getOwnerId()) {
+            $this->cache->deleteItem("user_pets_" . $pet->getOwnerId());
+        }
 
         return $pet->getName() ?? null;
     }
