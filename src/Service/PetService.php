@@ -72,4 +72,18 @@ class PetService
         }
         return $cacheItem->get();
     }
+
+    public function getLostPetData(int $petId): mixed
+    {
+        $cacheKey  = "lost_pet_$petId";
+        $cacheItem = $this->cache->getItem($cacheKey);
+
+        if (! $cacheItem->isHit()) {
+            $lostPet = $this->serializer->serialize($this->petRepository->findBy(['id' => $petId]), 'json');
+            $cacheItem->set($lostPet);
+            $cacheItem->expiresAfter(86400);
+            $this->cache->save($cacheItem);
+        }
+        return $cacheItem->get();
+    }
 }

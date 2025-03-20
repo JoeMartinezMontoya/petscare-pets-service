@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class CreatePetController extends AbstractController
 {
-    #[Route('/api/pets/create-pet', name: 'create_pet', methods: ['POST'])]
+    #[Route('/private/api/pets/create-pet', name: 'create_pet', methods: ['POST'])]
     public function __invoke(Request $request, PetService $petService): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
