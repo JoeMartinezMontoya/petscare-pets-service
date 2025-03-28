@@ -86,4 +86,9 @@ class PetService
         }
         return $cacheItem->get();
     }
+
+    public function getName(int $id): string
+    {
+        return $this->petRepository->findName($id)['name'];
+    }
 }
