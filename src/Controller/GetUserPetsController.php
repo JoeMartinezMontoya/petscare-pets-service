@@ -11,9 +11,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class GetUserPetsController extends AbstractController
 {
-    #[Route('/api/pets/user/{id}', name: 'get_user_pet', methods: ['GET'])]
+    #[Route('/private/api/pets/user/{id}', name: 'get_user_pet', methods: ['GET'])]
     public function __invoke(PetService $petService, int $id): JsonResponse
     {
+        #TODO : Rework with Token email claim
         try {
             $pets = $petService->getUserPets($id);
             return ApiResponse::success([
