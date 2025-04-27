@@ -30,4 +30,14 @@ class PetRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findName(int $id): mixed
+    {
+        return $this->createQueryBuilder('pet')
+            ->select('pet.name')
+            ->where('pet.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

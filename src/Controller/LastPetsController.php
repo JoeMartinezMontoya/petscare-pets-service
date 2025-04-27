@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class LastPetsController extends AbstractController
 {
-    #[Route('/api/pets/last-pets', name: 'last_pets', methods: ['GET'])]
+    #[Route('/public/api/pets/last-pets', name: 'last_pets', methods: ['GET'])]
     public function __invoke(PetService $petService): JsonResponse
     {
         try {

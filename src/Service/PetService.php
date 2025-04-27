@@ -25,6 +25,7 @@ class PetService
         if (! $birthdate) {
             throw new \InvalidArgumentException('Birthdate format is not valid.');
         }
+
         $pet = (new Pet)
             ->setName($data['name'])
             ->setSpecies($data['species'])
@@ -34,6 +35,10 @@ class PetService
             ->setOwnerId($data['user_id'] ?? null);
 
         $this->petRepository->persistPet($pet);
+
+        if ($pet->getOwnerId()) {
+            $this->cache->deleteItem("user_pets_" . $pet->getOwnerId());
+        }
 
         return $pet->getName() ?? null;
     }
@@ -66,5 +71,24 @@ class PetService
             $this->cache->save($cacheItem);
         }
         return $cacheItem->get();
+    }
+
+    public function getLostPetData(int $petId): mixed
+    {
+        $cacheKey  = "lost_pet_$petId";
+        $cacheItem = $this->cache->getItem($cacheKey);
+
+        if (! $cacheItem->isHit()) {
+            $lostPet = $this->serializer->serialize($this->petRepository->findBy(['id' => $petId]), 'json');
+            $cacheItem->set($lostPet);
+            $cacheItem->expiresAfter(86400);
+            $this->cache->save($cacheItem);
+        }
+        return $cacheItem->get();
+    }
+
+    public function getName(int $id): string
+    {
+        return $this->petRepository->findName($id)['name'];
     }
 }
